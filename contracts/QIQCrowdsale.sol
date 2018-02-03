@@ -292,21 +292,14 @@ contract Crowdsale is Ownable {
     using SafeMath for uint256;
 
     // start and end timestamps where investments are allowed (both inclusive)
-    uint256 public startTimePreICO;
-
-    uint256 public endTimePreICO;
-
-    uint256 public startTime1stICO;
-
-    uint256 public endTime1stICO;
-
-    uint256 public startTime2ndICO;
-
-    uint256 public endTime2ndICO;
-
-    uint256 public startTimeFinalICO;
-
-    uint256 public endTimeFinalICO;
+    uint256 internal startTimePreICO;
+    uint256 internal endTimePreICO;
+    uint256 internal startTime1stICO;
+    uint256 internal endTime1stICO;
+    uint256 internal startTime2ndICO;
+    uint256 internal endTime2ndICO;
+    uint256 internal startTimeFinalICO;
+    uint256 internal endTimeFinalICO;
 
     // address where funds are collected
     address public wallet;
@@ -360,15 +353,10 @@ contract QIQCrowdsale is Ownable, Crowdsale, MintableToken {
     mapping (address => uint256) public deposited;
 
     uint256 public constant INITIAL_SUPPLY = 80 * (10 ** 6) * (10 ** uint256(decimals));
-
     uint256 public fundForSale = 20 * (10 ** 6) * (10 ** uint256(decimals));
-
     uint256 public tokenPreIcoCapReached = 5 * (10 ** 6) * (10 ** uint256(decimals));
-
     uint256 public weiMinPreIco = 5 * 10 ** 17;
-
     uint256 public weiMinIco = 1 * 10 ** 17;
-
     uint256 public weiMaximum = 50 * 10 ** 18;
 
     uint256 public countInvestor;
@@ -450,8 +438,8 @@ contract QIQCrowdsale is Ownable, Crowdsale, MintableToken {
     */
     function getTotalAmountOfTokens(uint256 _weiAmount) internal returns (uint256 amountOfTokens) {
         uint256 currentTokenRate = 10;
-        uint256 currentDate = now;
-        //uint256 currentDate = 1521100821;
+        //uint256 currentDate = now;
+        uint256 currentDate = 1518249620;
         require(currentDate >= startTimePreICO);
         if (currentDate >= startTimePreICO && currentDate < endTimePreICO) {
             if (_weiAmount < weiMinPreIco) {

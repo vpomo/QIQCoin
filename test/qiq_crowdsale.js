@@ -4,10 +4,10 @@ var QIQCrowdsale = artifacts.require("./QIQCrowdsale.sol");
 contract('QIQCrowdsale', (accounts) => {
     var contract;
     var owner = "0x250565aBd53EfeF39c8619b98c2420b85228474C";
-    var rate = 15*100;
-    var buyWei = 4 * 10**17;
-    var rateNew = 15*100;
-    var buyWeiNew = 1 * 10**17;
+    var rate = 15*140;
+    var buyWei = 5 * 10**17;
+    var rateNew = 15*140;
+    var buyWeiNew = 5 * 10**17;
     var buyWeiMin = 3 * 10**15;
     var buyWeiCap = 600 * 10**24;
 
