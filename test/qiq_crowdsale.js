@@ -3,19 +3,19 @@ var QIQCrowdsale = artifacts.require("./QIQCrowdsale.sol");
 
 contract('QIQCrowdsale', (accounts) => {
     var contract;
-    var owner = "0x02882944f2bA15818A306DeE1d91FbA6D03d12A6";
-    var rate = 1000;
-    var buyWei = 5 * 10**17;
-    var rateNew = 1000;
-    var buyWeiNew = 5 * 10**17;
+    var owner = "0x250565aBd53EfeF39c8619b98c2420b85228474C";
+    var rate = 15*100;
+    var buyWei = 4 * 10**17;
+    var rateNew = 15*100;
+    var buyWeiNew = 1 * 10**17;
     var buyWeiMin = 3 * 10**15;
     var buyWeiCap = 600 * 10**24;
 
-    var totalSupply = 50 * 10**24;
+    var totalSupply = 8e+25;
 
     it('should deployed contract', async ()  => {
         assert.equal(undefined, contract);
-        contract = await SIRCrowdsale.deployed();
+        contract = await QIQCrowdsale.deployed();
         assert.notEqual(undefined, contract);
     });
 
@@ -42,7 +42,11 @@ contract('QIQCrowdsale', (accounts) => {
         var tokenAllocatedBefore = await contract.tokenAllocated.call();
         var balanceAccountTwoBefore = await contract.balanceOf(accounts[2]);
         var weiRaisedBefore = await contract.weiRaised.call();
-        //console.log("tokenAllocated = " + tokenAllocatedBefore);
+        //console.log("tokenAllocatedBefore = " + tokenAllocatedBefore);
+
+        var numberToken = await contract.validPurchaseTokens.call(buyWei);
+        //console.log(" numberTokens = " + JSON.stringify(numberToken));
+        //console.log("numberTokens = " + numberToken);
 
         await contract.buyTokens(accounts[2],{from:accounts[2], value:buyWei});
         var tokenAllocatedAfter = await contract.tokenAllocated.call();
@@ -67,7 +71,6 @@ contract('QIQCrowdsale', (accounts) => {
         //console.log("DepositedAfter = " + depositedAfter);
         assert.equal(buyWei, depositedAfter);
 
-
         var balanceAccountThreeBefore = await contract.balanceOf(accounts[3]);
         await contract.buyTokens(accounts[3],{from:accounts[3], value:buyWeiNew});
         var balanceAccountThreeAfter = await contract.balanceOf(accounts[3]);
@@ -77,18 +80,17 @@ contract('QIQCrowdsale', (accounts) => {
         assert.equal(rateNew*buyWeiNew, balanceAccountThreeAfter);
 
         var balanceOwnerAfter = await contract.balanceOf(owner);
-        //console.log("balanceOwner = " + Number(balanceOwnerAfter));
-        //assert.equal(Number(totalSupply - balanceAccountThreeAfter - balanceAccountTwoAfter), Number(balanceOwnerAfter));
+        //console.log("balanceOwnerAfter = " + Number(balanceOwnerAfter));
+        //assert.equal(totalSupply - balanceAccountThreeAfter - balanceAccountTwoAfter, balanceOwnerAfter);
+
 
     });
 
-
-/*
     it('verification tokens limit min amount', async ()  => {
-        await contract.buyTokens(accounts[2],{from:accounts[2], value:buyWeiMin});
+            var numberTokensMinWey = await contract.validPurchaseTokens.call(buyWeiMin);
+            //console.log("numberTokensMinWey = " + numberTokensMinWey);
+            assert.equal(0, numberTokensMinWey);
     });
-*/
-
 
     it('verification tokens cap reached', async ()  => {
             var numberTokensNormal = await contract.validPurchaseTokens.call(buyWei);
@@ -99,7 +101,6 @@ contract('QIQCrowdsale', (accounts) => {
             //console.log("numberTokensFault = " + numberTokensFault);
             assert.equal(0, numberTokensFault);
     });
-
 
 });
 

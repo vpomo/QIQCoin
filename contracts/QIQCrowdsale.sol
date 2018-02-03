@@ -81,7 +81,7 @@ contract ERC20 {
 contract BasicToken is ERC20Basic {
     using SafeMath for uint256;
 
-    mapping(address => uint256) balances;
+    mapping (address => uint256) balances;
 
     /**
     * @dev transfer token for a specified address
@@ -114,7 +114,7 @@ contract BasicToken is ERC20Basic {
 
 contract StandardToken is ERC20, BasicToken {
 
-    mapping(address => mapping(address => uint256)) internal allowed;
+    mapping (address => mapping (address => uint256)) internal allowed;
 
 
     /**
@@ -237,7 +237,7 @@ contract Ownable {
  */
 
 contract MintableToken is StandardToken, Ownable {
-    string public constant name = "QIQCoin";
+    string public constant name = "Qtoken";
 
     string public constant symbol = "QIQ";
 
@@ -292,14 +292,21 @@ contract Crowdsale is Ownable {
     using SafeMath for uint256;
 
     // start and end timestamps where investments are allowed (both inclusive)
-    uint256 public startTimePreICO,
-    uint256 public endTimePreICO,
-    uint256 public startTime1stICO,
-    uint256 public endTime1stICO,
-    uint256 public startTime2ndICO,
-    uint256 public endTime2ndICO,
-    uint256 public startTimeFinalICO,
-    uint256 public endTimeFinalICO,
+    uint256 public startTimePreICO;
+
+    uint256 public endTimePreICO;
+
+    uint256 public startTime1stICO;
+
+    uint256 public endTime1stICO;
+
+    uint256 public startTime2ndICO;
+
+    uint256 public endTime2ndICO;
+
+    uint256 public startTimeFinalICO;
+
+    uint256 public endTimeFinalICO;
 
     // address where funds are collected
     address public wallet;
@@ -312,15 +319,15 @@ contract Crowdsale is Ownable {
     uint256 public hardWeiCap = 10 * (10 ** 3) * (10 ** 18);
 
     function Crowdsale(
-        uint256 _startTimePreICO,
-        uint256 _endTimePreICO,
-        uint256 _startTime1stICO,
-        uint256 _endTime1stICO,
-        uint256 _startTime2ndICO,
-        uint256 _endTime2ndICO,
-        uint256 _startTimeFinalICO,
-        uint256 _endTimeFinalICO,
-        address _wallet
+    uint256 _startTimePreICO,
+    uint256 _endTimePreICO,
+    uint256 _startTime1stICO,
+    uint256 _endTime1stICO,
+    uint256 _startTime2ndICO,
+    uint256 _endTime2ndICO,
+    uint256 _startTimeFinalICO,
+    uint256 _endTimeFinalICO,
+    address _wallet
     )
     public
     {
@@ -350,7 +357,7 @@ contract QIQCrowdsale is Ownable, Crowdsale, MintableToken {
     enum State {Active, Closed}
     State public state;
 
-    mapping(address => uint256) public deposited;
+    mapping (address => uint256) public deposited;
 
     uint256 public constant INITIAL_SUPPLY = 80 * (10 ** 6) * (10 ** uint256(decimals));
 
@@ -367,24 +374,29 @@ contract QIQCrowdsale is Ownable, Crowdsale, MintableToken {
     uint256 public countInvestor;
 
     event TokenPurchase(address indexed beneficiary, uint256 value, uint256 amount);
+
     event TokenLimitReached(uint256 tokenRaised, uint256 purchasedToken);
-    event NotReachedMinimumLimitPurchase(uint256 amountWei, uint256 minimumWei);
+
+    event HardCapReached();
+
+    event Finalized();
+
 
     function QIQCrowdsale(
-        uint256 _startTimePreICO,
-        uint256 _endTimePreICO,
-        uint256 _startTime1stICO,
-        uint256 _endTime1stICO,
-        uint256 _startTime2ndICO,
-        uint256 _endTime2ndICO,
-        uint256 _startTimeFinalICO,
-        uint256 _endTimeFinalICO,
-        address _owner,
-        address _wallet
+    uint256 _startTimePreICO,
+    uint256 _endTimePreICO,
+    uint256 _startTime1stICO,
+    uint256 _endTime1stICO,
+    uint256 _startTime2ndICO,
+    uint256 _endTime2ndICO,
+    uint256 _startTimeFinalICO,
+    uint256 _endTimeFinalICO,
+    address _owner,
+    address _wallet
     )
     public
     Crowdsale(_startTimePreICO, _endTimePreICO, _startTime1stICO, _endTime1stICO,
-        _startTime2ndICO, _endTime2ndICO, _startTimeFinalICO, _endTimeFinalICO, _wallet)
+    _startTime2ndICO, _endTime2ndICO, _startTimeFinalICO, _endTimeFinalICO, _wallet)
     {
 
         require(_wallet != address(0));
@@ -398,16 +410,21 @@ contract QIQCrowdsale is Ownable, Crowdsale, MintableToken {
         require(resultMintForOwner);
     }
 
+    modifier inState(State _state) {
+        require(state == _state);
+        _;
+    }
+
     // fallback function can be used to buy tokens
     function() payable public {
         buyTokens(msg.sender);
     }
 
     // low level token purchase function
-    function buyTokens(address _investor) public payable returns (uint256){
-        require(state == State.Active);
+    function buyTokens(address _investor) public inState(State.Active) payable returns (uint256){
         require(_investor != address(0));
         uint256 weiAmount = msg.value;
+        require(weiAmount < weiMaximum);
         uint256 tokens = validPurchaseTokens(weiAmount);
         if (tokens == 0) {revert();}
         weiRaised = weiRaised.add(weiAmount);
@@ -423,45 +440,48 @@ contract QIQCrowdsale is Ownable, Crowdsale, MintableToken {
         return tokens;
     }
 
-    function getTotalAmountOfTokens(uint256 _weiAmount) internal constant returns (uint256 amountOfTokens) {
-        uint256 currentTokenRate = 0;
-        //uint256 currentDate = now;
-        //uint256 currentDate = 1517792400; // 05 Feb 2018
-        //uint256 currentDate = 1518397200; // 12 Feb 2018
-        uint256 currentDate = 1519002000;
-        // 19 Feb 2018
-        //uint256 currentDate = 1519606800; // 26 Feb 2018
-        //uint256 currentDate = 1520211600; // 05 Mar 2018
-        //uint256 currentDate = 1520816400; // 12 Mar 2018
-        //uint256 currentDate = 1521421200; // 19 Mar 2018
-        //uint256 currentDate = 1522026000; // 26 Mar 2018
-        //uint256 currentDate = 1525136400; // 01 May 2018
+    /**
+    * Pre ICO              (10th Feb (UTC 8:00) to 18th Feb (UTC 8:00)) - 40% bonus [Min. purchase of 0.5 ETH]
+    * Main ICO 1st round   (18th Feb (UTC 8:01) to 28th Feb (UTC 8:00)) - 25% bonus [Min. purchase of 0.1 ETH]
+    * Main ICO 2nd round   (28th Feb (UTC 8:01) to 15th Mar (UTC 8:00)) - 15% bonus [Min. purchase of 0.1 ETH]
+    * Main ICO Final round (15th Mar (UTC 8:01) to 30th Mar (UTC 8:00)) -  0% bonus [Min. purchase of 0.1 ETH]
+    *
+    * Only for Pre ICO stage with a cap of 5 million tokens for sale.
+    */
+    function getTotalAmountOfTokens(uint256 _weiAmount) internal returns (uint256 amountOfTokens) {
+        uint256 currentTokenRate = 10;
+        uint256 currentDate = now;
+        //uint256 currentDate = 1521100821;
         require(currentDate >= startTimePreICO);
-
         if (currentDate >= startTimePreICO && currentDate < endTimePreICO) {
             if (_weiAmount < weiMinPreIco) {
                 currentTokenRate = 0;
-            } else {
-                currentTokenRate = _weiAmount.mul(1500);
+            }
+            else {
+                currentTokenRate = _weiAmount.mul(15 * 140);
             }
             if (tokenAllocated.add(currentTokenRate) > tokenPreIcoCapReached) {
-                //TokenLimitReached(tokenAllocated, currentTokenRate);
+                TokenLimitReached(tokenAllocated, currentTokenRate);
                 currentTokenRate = 0;
             }
             return currentTokenRate;
-        }
-        else if (currentDate >= startTimeICO && currentDate < endTimeICO) {
-            if (_weiAmount < weiMinIco) {
-                currentTokenRate = 0;
-            } else {
-                currentTokenRate = _weiAmount.mul(1500);
-            }
-            return currentTokenRate;
-        }
-        else {
-            return currentTokenRate = _weiAmount.mul(0);
         }
 
+        if (_weiAmount < weiMinIco) {
+            return 0;
+        }
+        else if (currentDate >= startTime1stICO && currentDate < endTime1stICO) {
+            currentTokenRate = _weiAmount.mul(15 * 125);
+        }
+        else if (currentDate >= startTime2ndICO && currentDate < endTime2ndICO) {
+            currentTokenRate = _weiAmount.mul(15 * 115);
+        }
+        else if (currentDate >= startTimeFinalICO && currentDate < endTimeFinalICO) {
+            currentTokenRate = _weiAmount.mul(15 * 100);
+        } else {
+            currentTokenRate = 0;
+        }
+        return currentTokenRate;
     }
 
     function deposit(address investor) internal {
@@ -480,13 +500,30 @@ contract QIQCrowdsale is Ownable, Crowdsale, MintableToken {
         return deposited[_investor];
     }
 
-    function validPurchaseTokens(uint256 _weiAmount) public returns (uint256) {
+    /**
+    * Hard cap - 10,000 ETH
+    * for token sale (20million)
+    */
+    function validPurchaseTokens(uint256 _weiAmount) public inState(State.Active) returns (uint256) {
         uint256 addTokens = getTotalAmountOfTokens(_weiAmount);
-        if (tokenAllocated.add(addTokens) > tokenPreIcoCapReached) {
+        if (tokenAllocated.add(addTokens) > fundForSale) {
             TokenLimitReached(tokenAllocated, addTokens);
             return 0;
         }
+        if (weiRaised.add(_weiAmount) > hardWeiCap) {
+            HardCapReached();
+            return 0;
+        }
         return addTokens;
+    }
+
+    function finalize() public onlyOwner inState(State.Active) returns (bool result) {
+        result = false;
+        state = State.Closed;
+        wallet.transfer(this.balance);
+        finishMinting();
+        Finalized();
+        result = true;
     }
 }
 
