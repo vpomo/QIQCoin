@@ -84,11 +84,19 @@ contract BasicToken is ERC20Basic {
     mapping (address => uint256) balances;
 
     /**
+    * Protection against short address attack
+    */
+    modifier onlyPayloadSize(uint numwords) {
+        assert(msg.data.length == numwords * 32 + 4);
+        _;
+    }
+
+    /**
     * @dev transfer token for a specified address
     * @param _to The address to transfer to.
     * @param _value The amount to be transferred.
     */
-    function transfer(address _to, uint256 _value) public returns (bool) {
+    function transfer(address _to, uint256 _value) public onlyPayloadSize(2) returns (bool) {
         require(_to != address(0));
         require(_value <= balances[msg.sender]);
         require(transfersEnabled);
@@ -117,20 +125,12 @@ contract StandardToken is ERC20, BasicToken {
     mapping (address => mapping (address => uint256)) internal allowed;
 
     /**
-    * Protection against short address attack
-    */
-    modifier onlyPayloadSize(uint numwords) {
-        assert(msg.data.length == numwords * 32 + 4);
-        _;
-    }
-
-    /**
      * @dev Transfer tokens from one address to another
      * @param _from address The address which you want to send tokens from
      * @param _to address The address which you want to transfer to
      * @param _value uint256 the amount of tokens to be transferred
      */
-    function transferFrom(address _from, address _to, uint256 _value) public onlyPayloadSize(2) returns (bool) {
+    function transferFrom(address _from, address _to, uint256 _value) public onlyPayloadSize(3) returns (bool) {
         require(_to != address(0));
         require(_value <= balances[_from]);
         require(_value <= allowed[_from][msg.sender]);
