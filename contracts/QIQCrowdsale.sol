@@ -116,6 +116,13 @@ contract StandardToken is ERC20, BasicToken {
 
     mapping (address => mapping (address => uint256)) internal allowed;
 
+    /**
+    * Protection against short address attack
+    */
+    modifier onlyPayloadSize(uint numwords) {
+        assert(msg.data.length == numwords * 32 + 4);
+        _;
+    }
 
     /**
      * @dev Transfer tokens from one address to another
@@ -123,7 +130,7 @@ contract StandardToken is ERC20, BasicToken {
      * @param _to address The address which you want to transfer to
      * @param _value uint256 the amount of tokens to be transferred
      */
-    function transferFrom(address _from, address _to, uint256 _value) public returns (bool) {
+    function transferFrom(address _from, address _to, uint256 _value) public onlyPayloadSize(2) returns (bool) {
         require(_to != address(0));
         require(_value <= balances[_from]);
         require(_value <= allowed[_from][msg.sender]);
@@ -438,8 +445,8 @@ contract QIQCrowdsale is Ownable, Crowdsale, MintableToken {
     */
     function getTotalAmountOfTokens(uint256 _weiAmount) internal returns (uint256 amountOfTokens) {
         uint256 currentTokenRate = 10;
-        //uint256 currentDate = now;
-        uint256 currentDate = 1518249620;
+        uint256 currentDate = now;
+        //uint256 currentDate = 1518249620;
         require(currentDate >= startTimePreICO);
         if (currentDate >= startTimePreICO && currentDate < endTimePreICO) {
             if (_weiAmount < weiMinPreIco) {
